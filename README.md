@@ -7,6 +7,8 @@ Nao Tokui for more detail: https://cclab.sfc.keio.ac.jp/projects/rhythmcan/
 
 The Keras implemntation:https://github.com/naotokui/CreativeGAN-Rhythm
 
+Conditional Generative Adversarial Nets: https://arxiv.org/abs/1411.1784
+
 ##Usage
 > download dataset
 
