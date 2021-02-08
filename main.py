@@ -12,7 +12,6 @@ from glob import glob
 import pandas as pd
 from pathlib import Path
 import time
-import wandb
 from collections import OrderedDict
 import random
 import pandas as pd
@@ -204,7 +203,8 @@ def main():
         print("opt.num_gpu :",opt.num_gpu )
         assert num_gpu == opt.num_gpu,"opt.num_gpu NOT equals torch.cuda.device_count()" 
 
-
+    if(opt.wandb):
+        import wandb
 
     print('----------------------Load Dataset----------------------')
     print('Root of dataset: ', opt.dataset_root)
