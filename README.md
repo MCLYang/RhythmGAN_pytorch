@@ -9,7 +9,15 @@ The Keras implemntation:https://github.com/naotokui/CreativeGAN-Rhythm
 
 Conditional Generative Adversarial Nets: https://arxiv.org/abs/1411.1784
 
+Besides the LSTM kernal, we inspired by the SOTA NLP research work [Attention Is All You Need](https://arxiv.org/abs/1706.03762) and provide Transformer kenral via transformer encoder block.
+
 ## Usage
+Option 1: Train on Google Colab
+> Train RythmGAN using LSTM Kernal
+https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing
+
+> Train RythmGAN using Transformer Kernal
+https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing
 > download dataset
 
 `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
