@@ -13,14 +13,17 @@ Besides the LSTM kernal, we are inspired by [Attention Is All You Need](https://
 
 ## Usage
 - Option 1: Train on Google Colab
-  - [Train RythmGAN using LSTM Kernal](https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
+  - [Train RythmGAN using LSTM Kernal]
+  (https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
 
-  - [Train RythmGAN using Transformer Kernal](https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
+  - [Train RythmGAN using Transformer Kernal]
+  (https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
 
 - Option 2: Locally training
 
-> download dataset
+  > download dataset
 
-`wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
+  `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
 
-`unzip data.zip`
+  `unzip data.zip`
+  
