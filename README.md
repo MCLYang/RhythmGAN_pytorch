@@ -31,13 +31,22 @@ There are two options for training, either Google Colab or your local machine.
     
   > Configure the environment
     
-    conda env create -f environment.yml
+    pip install -r requirements.txt
     
+    sudo apt-get install fluidsynth
+ 
   > Run training script
   
     python main.py --kernal=LSTM
 
     python main.py --kernal=Transformer
 
-    
-    
+## Inference, Play music and Save them
+
+Please refer `Play_music.ipynb` and `Save_music.ipynb`
+
+OR, Use the interactive interface: https://github.com/naotokui/M4L-CreativeGAN-Rhythm/
+
+
+
+
