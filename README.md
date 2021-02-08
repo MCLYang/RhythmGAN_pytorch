@@ -1,7 +1,7 @@
 # RhythmGAN_pytorch
 The pytorch implementation for Conditional RhythmGAN+TransformerKernal
 
-![alt text](https://github.com/MCLYang/RhythmGAN_pytorch/blob/master/img/Screenshot%20from%202021-02-08%2002-33-00.png)
+![alt text](https://github.com/MCLYang/RhythmGAN_pytorch/blob/master/img/Screenshot%20from%202021-02-08%2011-20-50.png)
 
 This project is the pytorch implemtation for Conditional Generative Adversarial Network(CGAN) to generate the rhythm. Please cite the original work from Nao Tokui for more detail: https://cclab.sfc.keio.ac.jp/projects/rhythmcan/
 
