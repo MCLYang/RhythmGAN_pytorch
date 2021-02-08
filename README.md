@@ -13,15 +13,15 @@ Besides the LSTM kernal, we are inspired by [Attention Is All You Need](https://
 
 ## Training
 
-There are two options for training, either Google Colab or you local machine.
+There are two options for training, either Google Colab or your local machine.
 
-##### Google colab
+##### Google Colab
 
   - [Train RythmGAN using LSTM Kernal](https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
 
   - [Train RythmGAN using Transformer Kernal](https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
 
-##### Local
+##### Local Machine
 
   > Download the dataset
     
@@ -30,5 +30,17 @@ There are two options for training, either Google Colab or you local machine.
     `unzip data.zip`
     
   > Configure the environment
+  
+    `conda env create -f environment.yml`
+    
+  > Run training script
+  
+    `python main.py --kernal=LSTM` 
+     
+     or
+     
+    `python main.py --kernal=Transformer` 
+
+
     
     
