@@ -1,5 +1,5 @@
-# RythmGAN_pytorch
-The pytorch implementation for Conditional RythmGAN+TransformerKernal
+# RhythmGAN_pytorch
+The pytorch implementation for Conditional RhythmGAN+TransformerKernal
 
 ![alt text](https://github.com/MCLYang/RhythmGAN_pytorch/blob/master/img/Screenshot%20from%202021-02-08%2002-33-00.png)
 
@@ -17,9 +17,9 @@ There are two options for training, either Google Colab or your local machine.
 
 ##### Google Colab
 
-  - [Train RythmGAN using LSTM Kernal](https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
+  - [Train RhythmGAN using LSTM Kernal](https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
 
-  - [Train RythmGAN using Transformer Kernal](https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
+  - [Train RhythmGAN using Transformer Kernal](https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
 
 ##### Local Machine
 
