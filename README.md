@@ -24,22 +24,20 @@ There are two options for training, either Google Colab or your local machine.
 ##### Local Machine
 
   > Download the dataset
-  ``` 
-  wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip
   
-  unzip data.zip
-  ``` 
+    wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip
+    
+    unzip data.zip
     
   > Configure the environment
-  
-    ``` 
+    
     conda env create -f environment.yml
-    ``` 
     
   > Run training script
-    `python main.py --kernal=LSTM` 
-    or
-    `python main.py --kernal=Transformer`
+  
+    python main.py --kernal=LSTM
+
+    python main.py --kernal=Transformer
 
     
     
