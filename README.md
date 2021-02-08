@@ -19,9 +19,7 @@ Besides the LSTM kernal, we are inspired by [Attention Is All You Need](https://
 
 - Option 2: Locally training
 
-  *download dataset*
-
-  > `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
-
-  > `unzip data.zip`
+  - download dataset
+    > `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
+    > `unzip data.zip`
   
