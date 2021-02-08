@@ -32,16 +32,14 @@ There are two options for training, either Google Colab or your local machine.
     
   > Configure the environment
   
-    `conda env create -f environment.yml`
+    ``` 
+    conda env create -f environment.yml
+    ``` 
     
   > Run training script
-  
     `python main.py --kernal=LSTM` 
-     
-     or
-     
-    `python main.py --kernal=Transformer` 
-
+    or
+    `python main.py --kernal=Transformer`
 
     
     
