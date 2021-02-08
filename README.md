@@ -11,16 +11,24 @@ Conditional Generative Adversarial Nets: https://arxiv.org/abs/1411.1784
 
 Besides the LSTM kernal, we are inspired by [Attention Is All You Need](https://arxiv.org/abs/1706.03762) and provide Transformer kernal via transformer encoder block.
 
-## Usage
-- Option 1: Train on Google Colab
+## Training
+
+There are two options for training, either Google Colab or you local machine.
+
+##### Google colab
+
   - [Train RythmGAN using LSTM Kernal](https://colab.research.google.com/drive/1JOVz0n1jz-rSIkEDnCEm7omqATAwpuk5?usp=sharing)
 
   - [Train RythmGAN using Transformer Kernal](https://colab.research.google.com/drive/1eFnYKpJ1xzMnQGPLNoqRTTmayVnS0oWs?usp=sharing)
 
-- Option 2: Locally training
-  
-  > Download dataset
+##### Local
+
+  > Download the dataset
+    
     `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
     
     `unzip data.zip`
-  
+    
+  > Configure the environment
+    
+    
