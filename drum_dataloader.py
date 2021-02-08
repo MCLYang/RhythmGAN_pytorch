@@ -1,15 +1,11 @@
 import os
 import os.path as osp
-import shutil
 import numpy as np
 import torch
-import pdb
 
 class drum_dataloader():
     def __init__(self,
                  root,
-                 is_train=True,
-		         test_code = False,
                  ):
         print("Loading post_preccessed data....")
         self.matrices_onsets = np.load(root)['onsets']

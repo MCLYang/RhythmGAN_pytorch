@@ -2,7 +2,9 @@ import sys
 from argparse import ArgumentParser
 import random
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '0' # only relevant to my own environment
+os.environ['CUDA_VISIBLE_DEVICES'] = '1' # only relevant to my own environment
+
+
 from tqdm import tqdm
 import numpy as np
 import pdb
@@ -24,56 +26,64 @@ import torch.utils.data
 from torch.utils.data import SubsetRandomSampler
 from torch.autograd import Variable
 
+from weight_init import weight_init
 from drum_dataloader import drum_dataloader
 from metrics_manager import metrics_manager
 from rhythm_can.constants import *
 from rhythm_can.utils import *
 
-MAX_LOSS_RATIO = 3.0 
+MAX_LOSS_RATIO = 3
 
 def opt_global_inti():
-    parser = ArgumentParser()
+        parser = ArgumentParser()
     #data
-    # parser.add_argument('--dataset_root', type=str, default="./data/matrices_drum_gm_clean.npz", help="dataset path")
-    parser.add_argument('--dataset_root', type=str, default="./data/matrices_drum_gm_clean_no_fill.npz", help="dataset path")
-    parser.add_argument('--num_workers', type=int, help='number of data loading workers', default=32)
-    parser.add_argument('--shuffle', type=lambda x: (str(x).lower() == 'true'),default=True ,help="if shuffle the dataset")
-    parser.add_argument('--train_size', type=float,default=0.9 ,help="represent the proportion of the dataset to include in the train split")
+        # parser.add_argument('--dataset_root', type=str, default="./data/matrices_drum_gm_clean.npz", help="dataset path")
+        parser.add_argument('--dataset_root', type=str, default="./data/matrices_drum_gm_clean_no_fill.npz", help="dataset path")
+        parser.add_argument('--num_workers', type=int, help='number of data loading workers', default=32)
+        parser.add_argument('--noise_len', type=int, default = 100,help='length of noise vector')
+        parser.add_argument('--shuffle', type=lambda x: (str(x).lower() == 'true'),default=True ,help="if shuffle the dataset")
+        # parser.add_argument('--train_size', type=float,default=0.9 ,help="represent the proportion of the dataset to include in the train split")
 
     #model parameters
-    parser.add_argument('--model', type=str,default='conditioned_gan' ,help="[conditioned_gan,..]")
-    parser.add_argument('--sequence_model', type=str, default='Transformer', help='type of recurrent net (LSTM, Transformer)')# Beware LSTM does not work well currently
-    # parser.add_argument('--synchonization', type=str,default='BN' ,help="[BN,BN_syn,Instance]")
+        parser.add_argument('--model', type=str,default='conditioned_gan' ,help="[conditioned_gan,..]")
+        parser.add_argument('--kernal', type=str, default='Transformer', help='type of recurrent net (LSTM, Transformer)')
+
+    #optimizer parameters
+        parser.add_argument('--d_init_lr', type=float,default= 0.0001,help="discriminator optimizer initial learning rate")
+        # parser.add_argument('--d_step_size', type=int,default=300 ,help="how many epochs to update the lr")#for LSTM
+        parser.add_argument('--d_step_size', type=int,default=100 ,help="how many epochs to update the lr")#for Transformer
+        parser.add_argument('--d_gamma', type=float,default=0.5 ,help="decay_rate")
+        parser.add_argument('--g_init_lr', type=str,default=0.001,help="generator optimizer initial learning rate")
+        # parser.add_argument('--g_step_size', type=int,default=300,help="how many epochs to update the lr"))#for LSTM
+        parser.add_argument('--g_step_size', type=int,default=100,help="how many epochs to update the lr")#for Transformer
+        parser.add_argument('--g_gamma', type=float,default=0.5,help="decay_rate")
+        # parser.add_argument('--synchonization', type=str,default='BN' ,help="[BN,BN_syn,Instance]")
 
     #training parameters
-    parser.add_argument('--apex', type=lambda x: (str(x).lower() == 'true'),default=False ,help="apexFF16")#Not implement yet
-    parser.add_argument('--cuda', type=lambda x: (str(x).lower() == 'true'),default=True ,help="Using GPU or Not")
-    parser.add_argument('--num_gpu', type=int,default=2,help="num_gpu")
-    parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
-    parser.add_argument('--epoch_max', type=int,default=501,help="epoch_max")
-    parser.add_argument('--save_perEpoch', type=int,default=10,help="save_perEpoch")
-    parser.add_argument('--K_unrolled_d', type=int,default=5,help="train Discriminator (K_unrolled) times per epoch")
-    parser.add_argument('--K_unrolled_g', type=int,default=1,help="train Generator (K_unrolled) times per epoch")
-    parser.add_argument('--debug', type=lambda x: (str(x).lower() == 'true'),default=False,help="is task for debugging?False for load entire dataset")
-    parser.add_argument('--vis_perEpoch', type=int,default=1,help="vis_perEpoch")
-    parser.add_argument('--save_fig', type=lambda x: (str(x).lower() == 'true'),default=True,help="Save the sample plot during the testing")
-    parser.add_argument('--show_fig', type=lambda x: (str(x).lower() == 'true'),default=False,help="show the sample plot during the testing")
+        parser.add_argument('--apex', type=lambda x: (str(x).lower() == 'true'),default=False ,help="apexFF16")#Not implement yet
+        parser.add_argument('--cuda', type=lambda x: (str(x).lower() == 'true'),default=True ,help="Using GPU or Not")
+        parser.add_argument('--num_gpu', type=int,default=1,help="num_gpu")
+        parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
+        parser.add_argument('--epoch_max', type=int,default=1001,help="epoch_max")
+        parser.add_argument('--K_unrolled_d', type=int,default=5,help="train Discriminator (K_unrolled) times per epoch")
+        parser.add_argument('--K_unrolled_g', type=int,default=1,help="train Generator (K_unrolled) times per epoch")
+        parser.add_argument('--debug', type=lambda x: (str(x).lower() == 'true'),default=False,help="is task for debugging?False for load entire dataset")
+        parser.add_argument('--save_perEpoch', type=int,default=200,help="save_perEpoch")
+        parser.add_argument('--vis_perEpoch', type=int,default=10,help="vis_perEpoch")
+        parser.add_argument('--save_fig', type=lambda x: (str(x).lower() == 'true'),default=True,help="Save the sample plot during the testing")
+        parser.add_argument('--show_fig', type=lambda x: (str(x).lower() == 'true'),default=False,help="show the sample plot during the testing")
 
 
     #wandb config(optional)
-    parser.add_argument('--wandb', type=lambda x: (str(x).lower() == 'true'),default=True ,help="Use wandb or not")
-    parser.add_argument('--wandb_history', type=lambda x: (str(x).lower() == 'true'),default=False ,help="load wandb history")
-    parser.add_argument('--wandb_id', type=str,default='',help="")
-    parser.add_argument('--wandb_file', type=str,default='',help="")
-    parser.add_argument('--unsave_epoch', type=int,default=0,help="")
-    parser.add_argument('--load_pretrain', type=str,default='',help="root load_pretrain")
-    parser.add_argument('--wd_project', type=str,default="Creative_GAN",help="")
-
-
-
-
-    args = parser.parse_args()
-    return args
+        parser.add_argument('--wandb', type=lambda x: (str(x).lower() == 'true'),default=False ,help="Use wandb or not")
+        parser.add_argument('--wandb_history', type=lambda x: (str(x).lower() == 'true'),default=False ,help="load wandb history")
+        parser.add_argument('--wandb_id', type=str,default='',help="")
+        parser.add_argument('--wandb_file', type=str,default='',help="")
+        parser.add_argument('--unsave_epoch', type=int,default=0,help="")
+        parser.add_argument('--load_pretrain', type=str,default='',help="root load_pretrain")
+        parser.add_argument('--wd_project', type=str,default="Creative_GAN",help="")
+        args = parser.parse_args()
+        return args
 
 
 def save_model(package,root):
@@ -109,16 +119,17 @@ def creating_new_model(opt):
     module_name = 'model.'+opt.model
     MODEL = importlib.import_module(module_name)
 
-    generator,discriminator = MODEL.get_model(NB_GENRES = opt.NB_GENRES,
-                                                len_input= opt.len_input,
+    discriminator,generator = MODEL.get_model(NB_GENRES = opt.NB_GENRES,
+                                                noise_len= opt.noise_len,
                                                 len_seq= opt.len_seq,
                                                 nb_notes=opt.nb_notes,
-                                                sequence_model = opt.sequence_model
-                                                )
+                                                kernal =opt.kernal)
+    # generator.apply(weight_init)
+    # discriminator.apply(weight_init)
 
     f_loss = MODEL.get_loss(cuda = opt.cuda)
 
-    print('generator and discriminator are successfully generated')
+    print('generator and discriminator models are successfully loaded')
 
     print('----------------------Model Info----------------------')
     print('Root of prestrain model: ', '[No Prestrained loaded]')
@@ -128,7 +139,7 @@ def creating_new_model(opt):
     print('----------------------Configure optimizer and scheduler----------------------')
     experiment_dir = Path('ckpt/')
     experiment_dir.mkdir(exist_ok=True)
-    experiment_dir = experiment_dir.joinpath(opt.model)
+    experiment_dir = experiment_dir.joinpath(opt.model+"_"+opt.kernal)
     experiment_dir.mkdir(exist_ok=True)
     shutil.copy('model/%s.py' % opt.model, str(experiment_dir))
     shutil.move(os.path.join(str(experiment_dir), '%s.py'% opt.model), 
@@ -140,7 +151,7 @@ def creating_new_model(opt):
     print('APEX: ',opt.apex)
     print('CUDA: ',opt.cuda)
 
-    if(opt.apex==True):#APEX not work yet
+    if(opt.apex==True):#APEX not is implmented yet
 
         model = apex.parallel.convert_syncbn_model(model)
         generator.cuda()
@@ -150,32 +161,27 @@ def creating_new_model(opt):
         model, optimizer = amp.initialize(model, optimizer, opt_level="O2")
         model = torch.nn.DataParallel(model,device_ids =[0,1])
 
-
-
     else:
         if(opt.cuda):
             discriminator.cuda()        
-            optimizer_d = optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0.9, 0.999),eps=1e-07)
-            scheduler_d = optim.lr_scheduler.StepLR(optimizer_d, step_size=10)
-            discriminator = torch.nn.DataParallel(discriminator)
-
-
             generator.cuda()
-            optimizer_g = optim.Adam(generator.parameters(), lr=0.0001,betas=(0.9, 0.999),eps=1e-07)
-            scheduler_g = optim.lr_scheduler.StepLR(optimizer_g, step_size=10)
-            # optimizer_g = optim.SGD(generator.parameters(), lr=0.01,momentum=0.9,weight_decay=1e-4)
-            # scheduler_g = optim.lr_scheduler.CosineAnnealingLR(optimizer_g, opt.epoch_max, eta_min=0.0001)
-            generator = torch.nn.DataParallel(generator)
+
+            optimizer_d = optim.Adam(discriminator.parameters(), lr=opt.d_init_lr,betas=(0.9, 0.999),eps=1e-07)
+            optimizer_g = optim.Adam(generator.parameters(), lr=opt.g_init_lr,betas=(0.9, 0.999),eps=1e-07)
+            scheduler_d = optim.lr_scheduler.StepLR(optimizer_d, step_size=opt.d_step_size,gamma = opt.d_gamma)
+            scheduler_g = optim.lr_scheduler.StepLR(optimizer_g, step_size=opt.g_step_size,gamma = opt.g_gamma)
+
+            if(opt.num_gpu>1):
+                discriminator = torch.nn.DataParallel(discriminator)            
+                generator = torch.nn.DataParallel(generator)
         else:
             discriminator.cpu()        
-            optimizer_d = optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0.9, 0.999),eps=1e-07)
-            scheduler_d = optim.lr_scheduler.StepLR(optimizer_d, step_size=10)
-
             generator.cpu()
-            optimizer_g = optim.Adam(generator.parameters(), lr=0.0001,betas=(0.9, 0.999),eps=1e-07)
-            scheduler_g = optim.lr_scheduler.StepLR(optimizer_g, step_size=10)
-            # optimizer_g = optim.SGD(generator.parameters(), lr=0.01,momentum=0.9,weight_decay=1e-4)
-            # scheduler_g = optim.lr_scheduler.CosineAnnealingLR(optimizer_g, opt.epoch_max, eta_min=0.0001)
+
+            optimizer_d = optim.Adam(discriminator.parameters(), lr=opt.d_init_lr,betas=(0.9, 0.999),eps=1e-07)
+            optimizer_g = optim.Adam(generator.parameters(), lr=opt.g_init_lr,betas=(0.9, 0.999),eps=1e-07)
+            scheduler_d = optim.lr_scheduler.StepLR(optimizer_d, step_size=opt.d_step_size,gamma = opt.d_gamma)
+            scheduler_g = optim.lr_scheduler.StepLR(optimizer_g, step_size=opt.g_step_size,gamma = opt.g_gamma)
 
     return opt,generator,discriminator,f_loss,optimizer_d,scheduler_d,optimizer_g,scheduler_g
 
@@ -189,6 +195,10 @@ def main():
     # setSeed(10)
     opt = opt_global_inti()
     if(opt.cuda):
+        opt.device = 'cuda'
+    else:
+        opt.device = 'cpu'
+    if(opt.cuda):
         num_gpu = torch.cuda.device_count()
         print("num gpu avaible:",num_gpu)
         print("opt.num_gpu :",opt.num_gpu )
@@ -200,50 +210,8 @@ def main():
     print('Root of dataset: ', opt.dataset_root)
     print('debug: ', opt.debug)
 
-
-    matrices_onsets = np.load(opt.dataset_root)['onsets']
-
-
-    drum_dataset = drum_dataloader(
-        root = opt.dataset_root,
-        test_code = False,
-        )
-
-    num_train = len(drum_dataset)
-    indices = list(range(num_train))
-    split = int(np.floor(opt.train_size * num_train))
-
-    if opt.shuffle:
-        np.random.shuffle(indices)
-
-
-    train_idx, valid_idx = indices[:split], indices[split:]
-    train_sampler = SubsetRandomSampler(train_idx)
-    valid_sampler = SubsetRandomSampler(valid_idx)
-
-    train_loader = torch.utils.data.DataLoader(
-            drum_dataset,
-            batch_size=opt.batch_size,
-            sampler=train_sampler,
-            pin_memory=True,
-            drop_last=True,
-            num_workers=int(opt.num_workers))
-
-
-    valid_loader = torch.utils.data.DataLoader(
-            drum_dataset,
-            batch_size=opt.batch_size,
-            sampler=valid_sampler,
-            pin_memory=True,
-            drop_last=True,
-            num_workers=int(opt.num_workers))
-
-
-
-    print('train_loader: ',len(train_loader))
-    print('valid_loader: ',len(valid_loader))
-    print('Batch_size: ', opt.batch_size)
-
+    drum_dataset = drum_dataloader(root = opt.dataset_root)
+    print("length of Data: ",len(drum_dataset))
     print('----------------------Music Info----------------------')
     print("DRUM_CLASSES:", DRUM_CLASSES)
     print("# of drum instruments:", nb_notes)
@@ -296,135 +264,110 @@ def main():
     print("train_d",train_d)
     print("train_g",train_g)
     print("epoch_max",opt.epoch_max)
-    print("sequence_model",opt.sequence_model)
+    print("kernal",opt.kernal)
     print("save_fig",opt.save_fig)
     print("show_fig",opt.show_fig)
 
     for epoch in range(opt.epoch_ckpt,opt.epoch_max):
-        print('---------------------Training----------------------')
-        print("Epoch: ",epoch)
-        manager_train.reset()
         generator.train()
-        discriminator.train()
-
-        for i, (drum,label) in tqdm(enumerate(train_loader), total=len(train_loader), smoothing=0.9):
-
-            if(opt.cuda):
-                drum,label = drum.cuda(),label.cuda()
-            else:
-                drum,label = drum.cpu(),label.cpu()
-
-            batch_size = drum.shape[0]
-
-            #================================Train discriminator==============================================================
-            # for _, param in generator.named_parameters():
-            #     param.requires_grad = False
-            if(opt.cuda):
-                valid = Variable(torch.FloatTensor(batch_size, 1).fill_(1.0), requires_grad=False).cuda()* 0.9 # one-sided soft labeling
-                fake = Variable(torch.FloatTensor(batch_size, 1).fill_(0.0), requires_grad=False).cuda()
-            else:
-                valid = Variable(torch.FloatTensor(batch_size, 1).fill_(1.0), requires_grad=False).cpu()* 0.9 # one-sided soft labeling
-                fake = Variable(torch.FloatTensor(batch_size, 1).fill_(0.0), requires_grad=False).cpu()
-
+        generator.train()
+        manager_train.reset()
+        nb_steps = int(len(drum_dataset)/opt.batch_size)
+        for _ in range(nb_steps):
+            #Train D
             if(train_d):
                 m_d_loss = 0.0
-                for i in range(opt.K_unrolled_d):# default K_unrolled_d = 5
-                    optimizer_d.zero_grad()
-                    noise = np.random.normal(0.0, 0.50, size=(opt.batch_size,100))
-                    if(opt.cuda):
-                        noise = torch.FloatTensor(noise).cuda()
-                    else:
-                        noise = torch.FloatTensor(noise).cpu()
+                for _ in range(opt.K_unrolled_d):
+                    subset_indices = np.random.randint(low = 0, high= len(drum_dataset), size=opt.batch_size)            
 
-                    drum_fake = generator(noise,label)  
+                    drum,label = drum_dataset.__getitem__(subset_indices)
+                    drum,label = drum.to(opt.device),label.to(opt.device)
+                    valid = Variable(torch.FloatTensor(opt.batch_size, 1).fill_(1.0), requires_grad=False).to(opt.device)* 0.9 # one-sided soft labeling
+                    fake = Variable(torch.FloatTensor(opt.batch_size, 1).fill_(0.0), requires_grad=False).to(opt.device)
+
+                    optimizer_d.zero_grad()
                     d_pred_real = discriminator(drum,label) 
-                    d_pred_fake = discriminator(drum_fake.detach(),label) # detach to avoid training G on these labels
                     d_loss_real = f_loss(d_pred_real, valid)
-                    d_loss_fake = f_loss(d_pred_fake, fake)
-                    d_loss = (d_loss_fake + d_loss_real) / 2
-                    m_d_loss += d_loss.item()
-                    d_loss.backward()
+                    d_loss_real.backward()
                     optimizer_d.step()
 
+                    optimizer_d.zero_grad()
+                    noise = np.random.normal(0.0, 1, size=(opt.batch_size,opt.noise_len))
+                    noise = torch.FloatTensor(noise).to(opt.device)
+                    drum_fake = generator(noise,label)  
+                    d_pred_fake = discriminator(drum_fake.detach(),label) # detach to avoid training G on these labels
+
+                    d_loss_fake = f_loss(d_pred_fake, fake)
+                    d_loss_fake.backward()
+                    optimizer_d.step()
+
+                    d_loss = (d_loss_fake + d_loss_real) / 2
+                    m_d_loss += d_loss.item()
+
                 m_d_loss /= float(opt.K_unrolled_d)
-            # for _, param in generator.named_parameters():
-            #     param.requires_grad = True
-            #================================Train discriminator==============================================================
-            
-            #================================Train generator==============================================================
+                manager_train.update('discriminator_loss',m_d_loss)
+
+            #Train G
             if(train_g):
-                # for _, param in discriminator.named_parameters():
-                #     param.requires_grad = False
                 m_g_loss = 0.0
-                for i in range(opt.K_unrolled_g):# default K_unrolled_g = 1
-
+                for p in discriminator.parameters():
+                    p.requires_grad = False
+                for _ in range(opt.K_unrolled_g):
                     optimizer_g.zero_grad()
-                    noise = np.random.normal(0.0, 0.50, size=(opt.batch_size,100))
-                    if(opt.cuda):
-                        noise = torch.FloatTensor(noise).cuda()
-                        label_random = torch.LongTensor(np.random.randint(0, opt.NB_GENRES, (batch_size,1))).cuda()
-                        valid = Variable(torch.FloatTensor(batch_size, 1).fill_(1.0), requires_grad=False).cuda()
+                    noise = np.random.normal(0.0, 1, size=(opt.batch_size,opt.noise_len))
+                    noise = torch.FloatTensor(noise).to(opt.device)
 
-                    else:
-                        noise = torch.FloatTensor(noise).cpu()
-                        label_random = torch.LongTensor(np.random.randint(0, opt.NB_GENRES, (batch_size,1))).cpu()
-                        valid = Variable(torch.FloatTensor(batch_size, 1).fill_(1.0), requires_grad=False).cpu()
-
+                    label_random = torch.LongTensor(np.random.randint(0, opt.NB_GENRES, (opt.batch_size,1))).to(opt.device)
+                    valid = Variable(torch.FloatTensor(opt.batch_size, 1).fill_(1.0), requires_grad=False).to(opt.device)
 
                     drum_fake = generator(noise,label_random)
                     d_pred_fake = discriminator(drum_fake,label_random)
 
                     g_loss = f_loss(d_pred_fake, valid)
                     m_g_loss += g_loss.item()
-
                     g_loss.backward()
                     optimizer_g.step()
+                for p in discriminator.parameters():
+                    p.requires_grad = True
                 m_g_loss /= float(opt.K_unrolled_g)
+                manager_train.update('generator_loss',m_g_loss)
 
 
-                # for _, param in discriminator.named_parameters():
-                #     param.requires_grad = True
-            #================================Train generator==============================================================
 
             if train_d and train_g:
-                if m_g_loss / m_d_loss > MAX_LOSS_RATIO:
-                    train_d = False
-    #                print ("Pausing D")
-                elif m_d_loss / m_g_loss > MAX_LOSS_RATIO:
-                    train_g = False
-    #                print ("Pausing G")
+                if(m_g_loss != 0 and m_d_loss != 0):
+                    if m_g_loss / m_d_loss > MAX_LOSS_RATIO:
+                        train_d = False
+                #                print ("Pausing D")
+                    elif m_d_loss / m_g_loss > MAX_LOSS_RATIO:
+                        train_g = False
+                #                print ("Pausing G")
+                else:
+                    if(m_g_loss == 0):
+                        train_g = False
+                    if(m_d_loss == 0):
+                        train_d = False
             else:
                 train_d = True
                 train_g = True
 
-            # ['discriminator_loss','generator_loss','generator_acc','time_complexicity','storage_complexicity']
-            manager_train.update('discriminator_loss',m_d_loss)
-            manager_train.update('generator_loss',m_g_loss)
-
-        summery_dict = manager_train.summary()
-        print('\nLoss_D: %.4f \t Loss_G: %.4f' %(summery_dict['discriminator_loss'],  summery_dict['generator_loss'] ))
-
-        scheduler_d.step()
-        scheduler_g.step()
+        # scheduler_d.step()
+        # scheduler_g.step()
+        summery_dict = manager_train.summary()    
+        print("epoch:",epoch)
+        print("m_d_loss:",summery_dict['discriminator_loss'],"    m_g_loss:",summery_dict['generator_loss'])
+        manager_train.reset()
         #================================Visualize sample==============================================================
         if(epoch%opt.vis_perEpoch == 0):
-            generator.eval()
-            genre_id = 0
-            # ['breakbeat' 'dnb' 'downtempo' 'garage' 'house' 'jungle' 'old_skool' 'techno' 'trance']
+            noise = np.random.normal(0.0, 1, size=(opt.batch_size,opt.noise_len))
+            noise = torch.FloatTensor(noise).to(opt.device)
+            label_random = torch.LongTensor(np.random.randint(0, opt.NB_GENRES, (opt.batch_size,1))).to(opt.device)
+            drum_generated = generator(noise,label_random)
+            drum_generated = drum_generated[0,:,:]
+            drum_generated = drum_generated.cpu().data.numpy()
 
-            noise = np.random.normal(0.0, 0.50, size=(opt.batch_size,100))
-            if(opt.cuda):
-                noise = torch.FloatTensor(noise).cuda()
-                label = torch.LongTensor([genre_id]*opt.batch_size).cuda()
-            else:
-                noise = torch.FloatTensor(noise).cpu()
-                label = torch.LongTensor([genre_id]*opt.batch_size).cpu()
-
-            drum_fake = generator(noise,label)
-            drum1 = drum_fake[0].data.cpu().numpy()
-            print(GENRES[genre_id])
-            signature = {'epoch':epoch,'genre':GENRES[genre_id]}
-            plot_drum_matrix(drum1,save_fig = opt.save_fig,show_fig = opt.show_fig,signature = signature)
+            signature = {'epoch':epoch,'genre':GENRES[label_random[0,0]]}
+            plot_drum_matrix(drum_generated,save_fig = opt.save_fig,show_fig = opt.show_fig,signature = signature)
 
             # play_drum_matrix(drum1)
         #================================Visualize sample==============================================================
