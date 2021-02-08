@@ -9,7 +9,7 @@ The Keras implemntation:https://github.com/naotokui/CreativeGAN-Rhythm
 
 Conditional Generative Adversarial Nets: https://arxiv.org/abs/1411.1784
 
-##Usage
+## Usage
 > download dataset
 
 `wget https://www.dropbox.com/s/a8mwk8rdv08cu2l/data.zip`
