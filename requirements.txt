@@ -1,29 +1,23 @@
-### Requirements
-
-### If you have a GPU environment, uncomment the following line
-tensorflow-gpu==1.15.0
-keras == 2.3.1
-
-torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio===0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
-
+setuptools
+wheel
+torch==1.9.0 
+torchvision==0.10.0 
+torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 protobuf
 matplotlib
 joblib
-
 pretty_midi
 pyfluidsynth
-
 tensorboard_logger
 matplotlib
 pyxdameraulevenshtein
-
-jupyter 
+jupyter
 notebook
 tqdm
-
-shutil
-importlib
+numpy
 pandas
 collections
 pdb
 pathlib
+shutil
+importlib
