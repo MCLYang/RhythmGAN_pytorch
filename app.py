@@ -47,6 +47,7 @@ def opt_global_inti():
         parser.add_argument('--model', type=str,default='conditioned_gan' ,help="[conditioned_gan,..]")
         parser.add_argument('--kernal', type=str, default='LSTM', help='type of recurrent net (LSTM, Transformer)')
 
+
     #optimizer parameters
         parser.add_argument('--d_init_lr', type=float,default= 0.0001,help="discriminator optimizer initial learning rate")
         # parser.add_argument('--d_step_size', type=int,default=300 ,help="how many epochs to update the lr")#for LSTM
