@@ -2,7 +2,7 @@ import sys
 from argparse import ArgumentParser
 import random
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1' # only relevant to my own environment
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1' # only relevant to my own environment
 
 
 from tqdm import tqdm
