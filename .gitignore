@@ -1,8 +1,0 @@
-/data
-/wandb
-/ckpt
-**/__pycache__
-**.pyc
-.ipynb_checkpoints
-./backend/data
-
