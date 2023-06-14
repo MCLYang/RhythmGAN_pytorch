@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Viewer</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div id="images"></div>
+
+    <script>
+        $(document).ready(function() {
+            $.getJSON('http://localhost:5000/all', function(data) {
+                data.images.forEach(function(imageUrl) {
+                    // Create a new image element
+                    var img = new Image();
+                    img.src = imageUrl;
+                    img.alt = "Image";
+                    img.width = 200;  // you can set width and height according to your requirement
+
+                    // Add the image to the div with id 'images'
+                    document.getElementById('images').appendChild(img);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
