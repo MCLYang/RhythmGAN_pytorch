@@ -1,2 +1,2 @@
 backend/data/matrices_drum_gm_clean.npz filter=lfs diff=lfs merge=lfs -text
-matrices_drum_gm_clean_no_fill.npz filter=lfs diff=lfs merge=lfs -text
+backend/data/matrices_drum_gm_clean_no_fill.npz filter=lfs diff=lfs merge=lfs -text
